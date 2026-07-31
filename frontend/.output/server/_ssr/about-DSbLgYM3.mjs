@@ -1,0 +1,460 @@
+import { t as getFeeItems } from "./fees-d1YMgDb8.mjs";
+import { n as require_jsx_runtime } from "../_libs/react+tanstack__react-query.mjs";
+import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/about-DSbLgYM3.js
+var import_jsx_runtime = require_jsx_runtime();
+function AboutPage() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "min-h-screen bg-background font-sans text-foreground selection:bg-primary/30",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
+				className: "sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto flex h-16 max-w-7xl items-center justify-between px-6",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-8",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: "/",
+							className: "font-display text-xl font-extrabold tracking-tighter",
+							children: ["CheckAPay", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-primary",
+								children: "."
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "hidden gap-6 text-sm font-medium text-muted-foreground md:flex",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+									to: "/",
+									hash: "solutions",
+									className: "transition-colors hover:text-foreground",
+									children: "Solutions"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+									to: "/",
+									hash: "network",
+									className: "transition-colors hover:text-foreground",
+									children: "Network"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+									to: "/about",
+									className: "text-foreground",
+									children: "About"
+								})
+							]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+							to: "/login",
+							className: "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+							children: "Log in"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+							to: "/register",
+							className: "rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90",
+							children: "Start Transacting"
+						})]
+					})]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "relative overflow-hidden border-b border-border",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "pointer-events-none absolute inset-0 opacity-[0.04]",
+						style: {
+							backgroundImage: "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
+							backgroundSize: "40px 40px"
+						}
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "pointer-events-none absolute -left-40 top-20 h-96 w-96 rounded-full bg-primary/20 blur-[140px]" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "relative mx-auto max-w-7xl px-6 py-24 lg:py-32",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 font-mono text-xs text-primary",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "h-1.5 w-1.5 rounded-full bg-primary" }), "EST. 2023 · SAN FRANCISCO · SINGAPORE"]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
+								className: "mb-8 max-w-4xl font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-balance lg:text-7xl",
+								children: [
+									"We make ",
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "text-primary",
+										children: "stablecoin billing"
+									}),
+									" simple for everyday businesses."
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "max-w-2xl text-lg leading-relaxed text-muted-foreground",
+								children: "CheckAPay helps restaurants, shops, merchants, contractors, freelancers, and growing teams send a bill, collect stablecoin, and cash out to native currency. A QR code or link is all it takes."
+							})
+						]
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "border-b border-border bg-card/40",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border lg:grid-cols-4",
+					children: [
+						{
+							k: "Settled to date",
+							v: "$4.2B",
+							d: "since 2023"
+						},
+						{
+							k: "Active corridors",
+							v: "47",
+							d: "countries"
+						},
+						{
+							k: "Median settlement",
+							v: "1.4s",
+							d: "on Base"
+						},
+						{
+							k: "Fee ceiling",
+							v: "1.0%",
+							d: "no hidden FX"
+						}
+					].map((m) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "bg-background p-8",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground",
+								children: m.k
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "mb-1 font-display text-4xl font-extrabold tabular-nums",
+								children: m.v
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "font-mono text-xs text-primary",
+								children: m.d
+							})
+						]
+					}, m.k))
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				id: "how-to-use",
+				className: "border-b border-border",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto grid max-w-7xl gap-16 px-6 py-24 lg:grid-cols-[0.9fr_1.1fr]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "mb-4 font-mono text-[11px] uppercase tracking-widest text-primary",
+						children: "// OUR THESIS"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						className: "font-display text-4xl font-extrabold leading-tight tracking-tight lg:text-5xl",
+						children: "Old billing systems are too slow."
+					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-6 text-lg leading-relaxed text-muted-foreground",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "A customer pays a bill, the payment is confirmed, and the business can move on. That should be simple." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-foreground",
+								children: "We give businesses a simple way to send a bill, collect stablecoin, and convert the balance to CAD. No long bank delays, no messy back-and-forth."
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Whether you run a restaurant, pay freelancers, or invoice other businesses, CheckAPay helps you keep the payment flow simple." })
+						]
+					})]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "border-b border-border bg-card/30",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "mx-auto max-w-7xl px-6 py-16",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "rounded-2xl border border-border bg-background p-8 shadow-sm",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "mb-4 font-mono text-[11px] uppercase tracking-widest text-primary",
+								children: "// FEE SCHEDULE"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+								className: "font-display text-3xl font-extrabold tracking-tight",
+								children: "See the pricing for each account type"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "mt-6 grid gap-6 md:grid-cols-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-3 text-sm font-semibold text-foreground",
+									children: "Personal"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+									className: "space-y-2 text-sm text-muted-foreground",
+									children: getFeeItems("personal").map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: ["• ", item] }, item))
+								})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-3 text-sm font-semibold text-foreground",
+									children: "Business"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+									className: "space-y-2 text-sm text-muted-foreground",
+									children: getFeeItems("business").map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: ["• ", item] }, item))
+								})] })]
+							})
+						]
+					})
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "border-b border-border bg-card/30",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto max-w-7xl px-6 py-24",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mb-16 flex items-end justify-between",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "mb-4 font-mono text-[11px] uppercase tracking-widest text-primary",
+							children: "// OPERATORS"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+							className: "font-display text-4xl font-extrabold tracking-tight lg:text-5xl",
+							children: "Ex-Stripe. Ex-Circle. Ex-JPM."
+						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "hidden font-mono text-xs uppercase tracking-widest text-muted-foreground lg:block",
+							children: "38 engineers · 12 countries"
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3",
+						children: [
+							{
+								name: "Marcus Chen",
+								role: "Co-founder, CEO",
+								bio: "Led B2B invoicing at Stripe (2018–22). Shipped the ACH+card rail that moved $180B."
+							},
+							{
+								name: "Priya Nair",
+								role: "Co-founder, CTO",
+								bio: "Protocol engineer at Circle. Authored two EIPs on stablecoin settlement finality."
+							},
+							{
+								name: "Elena Volkov",
+								role: "Head of Compliance",
+								bio: "12 years at JPM Treasury Services. MiCA and BSA registered agent."
+							},
+							{
+								name: "David Okonkwo",
+								role: "Head of Protocol",
+								bio: "Ex-Uniswap Labs. Wrote the payment splitter core that clears $16M/day."
+							},
+							{
+								name: "Yuki Tanaka",
+								role: "Head of Design",
+								bio: "Built the trading terminal at Jane Street. Believes density is a virtue."
+							},
+							{
+								name: "Amara Diallo",
+								role: "Head of Corridors",
+								bio: "Opened 34 payment corridors at Wise. Now doing the same, on-chain."
+							}
+						].map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "group bg-background p-8 transition-colors hover:bg-card",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-6 flex h-14 w-14 items-center justify-center rounded-md border border-border bg-card font-display text-lg font-bold text-primary",
+									children: p.name.split(" ").map((n) => n[0]).join("")
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-1 font-display text-xl font-bold",
+									children: p.name
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-4 font-mono text-[11px] uppercase tracking-widest text-primary",
+									children: p.role
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-sm leading-relaxed text-muted-foreground",
+									children: p.bio
+								})
+							]
+						}, p.name))
+					})]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "border-b border-border",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto max-w-7xl px-6 py-24",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mb-16",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "mb-4 font-mono text-[11px] uppercase tracking-widest text-primary",
+							children: "// LEDGER"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+							className: "font-display text-4xl font-extrabold tracking-tight lg:text-5xl",
+							children: "A short changelog."
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "space-y-px",
+						children: [
+							{
+								d: "2023.Q2",
+								t: "CheckAPay incorporated. Seed led by Ribbit.",
+								tag: "GENESIS"
+							},
+							{
+								d: "2023.Q4",
+								t: "Payment splitter v0 audited by Trail of Bits.",
+								tag: "AUDIT"
+							},
+							{
+								d: "2024.Q1",
+								t: "Base + Arbitrum mainnet. First $1M week.",
+								tag: "MAINNET"
+							},
+							{
+								d: "2024.Q3",
+								t: "$40M Series A led by Paradigm.",
+								tag: "SERIES A"
+							},
+							{
+								d: "2025.Q1",
+								t: "MiCA registration in EU. USDC/EURC corridor live.",
+								tag: "MiCA"
+							},
+							{
+								d: "2025.Q4",
+								t: "$482M monthly volume. Splitter v2 with L2 batching.",
+								tag: "SCALE"
+							}
+						].map((e) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-1 items-start gap-2 border-b border-border py-5 font-mono text-sm transition-colors hover:bg-card/40 sm:grid-cols-[110px_100px_1fr] sm:items-center sm:gap-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "tabular-nums text-primary",
+									children: e.d
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "text-[10px] uppercase tracking-widest text-muted-foreground",
+									children: e.tag
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "min-w-0 font-sans text-base text-foreground",
+									children: e.t
+								})
+							]
+						}, e.d))
+					})]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				id: "fees",
+				className: "border-b border-border bg-card/30",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto max-w-7xl px-6 py-24",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mb-16",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "mb-4 font-mono text-[11px] uppercase tracking-widest text-primary",
+							children: "// OPERATING PRINCIPLES"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+							className: "font-display text-4xl font-extrabold tracking-tight lg:text-5xl",
+							children: "Four rules. No exceptions."
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "grid gap-8 md:grid-cols-2",
+						children: [
+							{
+								n: "01",
+								t: "Custody is not our business.",
+								b: "Funds never touch a CheckAPay wallet. Splitter contracts route atomically. If we disappear tomorrow, your money doesn't."
+							},
+							{
+								n: "02",
+								t: "Fees are code, not policy.",
+								b: "0.5%–1% is written into the contract. We cannot raise it retroactively. You can read the bytecode."
+							},
+							{
+								n: "03",
+								t: "Finality means finality.",
+								b: "We don't wave settlement times. Base is 1.4s. Bitcoin is 60 minutes. You see it on the console."
+							},
+							{
+								n: "04",
+								t: "Compliance is a first-class primitive.",
+								b: "Every payment carries an ERP-ready receipt with counterparty attestation. Auditors love us."
+							}
+						].map((v) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "rounded-md border border-border bg-background p-8",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-4 font-mono text-xs text-primary",
+									children: v.n
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "mb-3 font-display text-xl font-bold",
+									children: v.t
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "leading-relaxed text-muted-foreground",
+									children: v.b
+								})
+							]
+						}, v.n))
+					})]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "border-b border-border",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto max-w-7xl px-6 py-24 text-center",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h2", {
+							className: "mx-auto mb-6 max-w-3xl font-display text-4xl font-extrabold leading-tight tracking-tight lg:text-6xl",
+							children: [
+								"Route your next invoice through ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-primary",
+									children: "on-chain rails"
+								}),
+								"."
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "mx-auto mb-10 max-w-xl text-lg text-muted-foreground",
+							children: "Provision your splitter contract in under 24 hours. No sales call required."
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex flex-col items-center justify-center gap-4 sm:flex-row",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/register",
+								className: "rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90",
+								children: "Start Transacting →"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/",
+								className: "rounded-md border border-border bg-card px-6 py-3 text-sm font-medium text-foreground transition-colors hover:border-primary/50",
+								children: "Read the docs"
+							})]
+						})
+					]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", {
+				className: "border-t border-border py-8",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 font-mono text-[10px] uppercase tracking-widest text-muted-foreground sm:flex-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "© 2026 CheckAPay Labs · SOC 2 Type II · ISO 27001" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-4",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/",
+								className: "hover:text-foreground",
+								children: "Home"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/about",
+								className: "hover:text-foreground",
+								children: "About"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/login",
+								className: "hover:text-foreground",
+								children: "Log in"
+							})
+						]
+					})]
+				})
+			})
+		]
+	});
+}
+//#endregion
+export { AboutPage as component };
