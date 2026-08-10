@@ -1,4 +1,4 @@
-import { A as rootRouteId, M as createLRUCache, N as invariant, P as decodePath, S as createInlineCssStyleAsset, b as TSR_SCRIPT_BARRIER_ID, w as getStylesheetHref, x as createInlineCssPlaceholderAsset, y as GLOBAL_TSR } from "./react-router+[...].mjs";
+import { F as decodePath, N as createLRUCache, P as invariant, S as createInlineCssStyleAsset, b as TSR_SCRIPT_BARRIER_ID, j as rootRouteId, w as getStylesheetHref, x as createInlineCssPlaceholderAsset, y as GLOBAL_TSR } from "./react-router+[...].mjs";
 //#region node_modules/unenv/dist/runtime/polyfill/globalthis.mjs
 var globalthis_default = globalThis;
 //#endregion

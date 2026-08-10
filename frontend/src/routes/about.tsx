@@ -283,12 +283,12 @@ function AboutPage() {
               {
                 n: "02",
                 t: "Fees are code, not policy.",
-                b: "0.5%–1% is written into the contract. We cannot raise it retroactively. You can read the bytecode.",
+                b: "0.3%–0.5% is written into the contract. We cannot raise it retroactively. You can read the bytecode.",
               },
               {
                 n: "03",
                 t: "Finality means finality.",
-                b: "We don't wave settlement times. Base is 1.4s. Bitcoin is 60 minutes. You see it on the console.",
+                b: "We don't wave settlement times. Base is 1.4s and Ethereum is ~15s. You see it on the console.",
               },
               {
                 n: "04",

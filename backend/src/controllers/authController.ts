@@ -1,6 +1,13 @@
 import crypto from "crypto";
 import type { Request, Response } from "express";
-import { createUser, findUserByEmail, findUserById } from "../models/Users";
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  linkSocialAccount,
+  updateUserBusinessAccount,
+  updateUserEvmAddress,
+} from "../models/Users";
 import {
   deleteSession,
   deleteTemporaryValue,
@@ -9,6 +16,7 @@ import {
   saveTemporaryValue,
 } from "../services/authStore";
 import { getDummyHash, hashPassword, verifyPassword } from "../services/passwordService";
+import { provisionEvmAddress } from "../services/walletService";
 import {
   ONBOARDING_SESSION_TTL_SECONDS,
   SESSION_COOKIE_NAME,
@@ -17,11 +25,13 @@ import {
   verifySessionToken,
 } from "../services/tokenService";
 
-function sanitizeUser(row: any) {
+export function sanitizeUser(row: any) {
   if (!row) return null;
 
   return {
     id: row.id,
+    authSubjectId: row.auth_subject_id ?? null,
+    evmAddress: row.evm_address ?? null,
     firstName: row.first_name,
     lastName: row.last_name,
     email: row.email,
@@ -61,11 +71,364 @@ function setSessionCookie(res: Response, token: string, ttlSeconds: number) {
   });
 }
 
-async function createSessionForUser(res: Response, userId: number | string, ttlSeconds: number = SESSION_TTL_SECONDS) {
+function setOAuthStateCookie(res: Response, key: string, state: string) {
+  res.cookie(key, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 10 * 60 * 1000,
+    path: "/",
+  });
+}
+
+function getFrontendOrigin() {
+  return (process.env.FRONTEND_URL || "http://localhost:8080").split(",")[0]?.trim() || "http://localhost:8080";
+}
+
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "hotmail.com",
+  "outlook.com",
+  "live.com",
+  "msn.com",
+  "yahoo.com",
+  "ymail.com",
+  "aol.com",
+  "icloud.com",
+  "me.com",
+  "mac.com",
+  "protonmail.com",
+  "proton.me",
+  "gmx.com",
+  "zoho.com",
+  "mail.com",
+  "yandex.com",
+]);
+
+function redirectToLoginWithError(res: Response, message: string, missingFields: string[] = []) {
+  const loginUrl = new URL("/login", getFrontendOrigin());
+  loginUrl.searchParams.set("error", message);
+  if (missingFields.length > 0) {
+    loginUrl.searchParams.set("missing", missingFields.join(","));
+  }
+  return res.redirect(loginUrl.toString());
+}
+
+function getEmailDomain(email: string) {
+  const [, domain = ""] = email.split("@");
+  return domain.trim().toLowerCase();
+}
+
+function isBusinessEmail(email: string) {
+  const domain = getEmailDomain(email);
+  return domain.length > 0 && !PERSONAL_EMAIL_DOMAINS.has(domain);
+}
+
+export async function createSessionForUser(res: Response, userId: number | string, ttlSeconds: number = SESSION_TTL_SECONDS) {
   const sessionId = crypto.randomUUID();
   await saveSession(sessionId, userId, ttlSeconds);
   const token = signSessionToken({ sub: String(userId), sid: sessionId }, ttlSeconds);
   setSessionCookie(res, token, ttlSeconds);
+}
+
+/**
+ * Every user row gets exactly one EVM address, derived once from its
+ * permanent `auth_subject_id` and persisted to `users.evm_address`. Safe to
+ * call on every login/register - it's a no-op once the address is already
+ * set, which also lazily backfills accounts created before this existed.
+ */
+async function ensureWalletProvisioned(userRow: any) {
+  if (!userRow || userRow.evm_address || !userRow.auth_subject_id) {
+    return userRow;
+  }
+
+  try {
+    const { address } = provisionEvmAddress(userRow.auth_subject_id);
+    return (await updateUserEvmAddress(userRow.id, address)) || userRow;
+  } catch (error) {
+    console.error("Wallet provisioning failed for user", userRow.id, error);
+    return userRow;
+  }
+}
+
+export async function startGoogleAuth(req: Request, res: Response) {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+  const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
+
+  if (!clientId || !redirectUri) {
+    return res.status(500).json({ error: "Google OAuth is not configured yet." });
+  }
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    access_type: "offline",
+    prompt: "select_account",
+  });
+
+  return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+}
+
+export async function googleCallback(req: Request, res: Response) {
+  const code = req.query.code;
+  const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
+
+  if (!code || typeof code !== "string" || !redirectUri) {
+    return res.status(400).json({ error: "Google OAuth callback is missing required parameters." });
+  }
+
+  try {
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_OAUTH_CLIENT_ID || "",
+        client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET || "",
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }).toString(),
+    });
+
+    const tokenData = (await tokenResponse.json()) as { access_token?: string; error?: string; error_description?: string };
+
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error("Google token exchange failed", tokenData);
+      return res.status(502).json({ error: "Unable to finish Google sign-in." });
+    }
+
+    const profileResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+
+    const profile = (await profileResponse.json()) as {
+      sub?: string;
+      email?: string;
+      given_name?: string;
+      family_name?: string;
+      name?: string;
+      email_verified?: boolean;
+    };
+
+    if (!profile.email) {
+      return res.status(400).json({ error: "Google did not return an email address." });
+    }
+
+    const normalizedEmail = String(profile.email).trim().toLowerCase();
+    let userRow = await findUserByEmail(normalizedEmail);
+
+    if (!userRow) {
+      userRow = await createUser({
+        email: normalizedEmail,
+        firstName: profile.given_name || profile.name?.split(" ")[0] || "Google",
+        lastName: profile.family_name || profile.name?.split(" ").slice(1).join(" ") || "User",
+        authProvider: "google",
+        googleId: profile.sub || null,
+        emailVerified: Boolean(profile.email_verified),
+        IsBusinessAccount: false,
+      });
+    } else if (!userRow.google_id && profile.sub) {
+      userRow = await linkSocialAccount(normalizedEmail, "google", profile.sub);
+    }
+
+    if (!userRow) {
+      return res.status(500).json({ error: "Unable to create or update your account." });
+    }
+
+    userRow = await ensureWalletProvisioned(userRow);
+
+    await createSessionForUser(res, userRow.id);
+
+    const frontendOrigin = getFrontendOrigin();
+    const redirectTarget = new URL("/dashboard", frontendOrigin);
+    return res.redirect(redirectTarget.toString());
+  } catch (error) {
+    console.error("Google callback failed", error);
+    return res.status(500).json({ error: "Google sign-in failed." });
+  }
+}
+
+export async function startFacebookAuth(req: Request, res: Response) {
+  const clientId = process.env.FACEBOOK_OAUTH_CLIENT_ID;
+  const redirectUri = process.env.FACEBOOK_OAUTH_REDIRECT_URI;
+
+  if (!clientId || !redirectUri) {
+    return res.status(500).json({ error: "Facebook OAuth is not configured yet." });
+  }
+
+  const state = crypto.randomBytes(24).toString("hex");
+  setOAuthStateCookie(res, "fb_oauth_state", state);
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope: "email,public_profile,user_birthday,user_link",
+    response_type: "code",
+    state,
+  });
+
+  return res.redirect(`https://www.facebook.com/v25.0/dialog/oauth?${params.toString()}`);
+}
+
+export async function facebookCallback(req: Request, res: Response) {
+  const code = req.query.code;
+  const state = req.query.state;
+  const redirectUri = process.env.FACEBOOK_OAUTH_REDIRECT_URI;
+
+  const storedState = req.cookies?.fb_oauth_state;
+  res.clearCookie("fb_oauth_state", { path: "/" });
+
+  if (!state || typeof state !== "string" || !storedState || state !== storedState) {
+    return redirectToLoginWithError(res, "Facebook sign-in was cancelled or expired.");
+  }
+
+  if (!code || typeof code !== "string" || !redirectUri) {
+    return redirectToLoginWithError(res, "Facebook OAuth callback is missing required parameters.");
+  }
+
+  try {
+    const tokenResponse = await fetch(
+      `https://graph.facebook.com/v25.0/oauth/access_token?client_id=${encodeURIComponent(process.env.FACEBOOK_OAUTH_CLIENT_ID || "")}&client_secret=${encodeURIComponent(process.env.FACEBOOK_OAUTH_CLIENT_SECRET || "")}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${encodeURIComponent(code)}`
+    );
+
+    const tokenData = (await tokenResponse.json()) as { access_token?: string; error?: { message?: string } };
+
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error("Facebook token exchange failed", tokenData);
+      return redirectToLoginWithError(res, tokenData.error?.message || "Unable to finish Facebook sign-in.");
+    }
+
+    const profileResponse = await fetch(
+      `https://graph.facebook.com/v25.0/me?fields=id,name,email,birthday,link&access_token=${encodeURIComponent(tokenData.access_token)}`
+    );
+
+    const profile = (await profileResponse.json()) as {
+      id?: string;
+      name?: string;
+      email?: string;
+      birthday?: string;
+      link?: string;
+      error?: { message?: string };
+    };
+
+    // Temporary debug log for schema design: inspect Facebook profile payload after sign-in.
+    console.log("[DEBUG][Facebook OAuth] Profile payload:", profile);
+
+    if (!profileResponse.ok || profile.error) {
+      console.error("Facebook profile fetch failed", profile);
+      return redirectToLoginWithError(res, profile.error?.message || "Unable to read Facebook profile.");
+    }
+
+    if (!profile.email || typeof profile.email !== "string" || profile.email.trim().length === 0) {
+      return redirectToLoginWithError(res, "Facebook did not return an email address.", ["email"]);
+    }
+
+    const normalizedEmail = String(profile.email).trim().toLowerCase();
+    const isBusinessAccount = isBusinessEmail(normalizedEmail);
+    let userRow = await findUserByEmail(normalizedEmail);
+
+    if (userRow) {
+      const missingLinkFields = ["id", "link"].filter((field) => {
+        const value = profile[field as keyof typeof profile];
+        return typeof value !== "string" || value.trim().length === 0;
+      });
+
+      if (missingLinkFields.length > 0) {
+        return redirectToLoginWithError(
+          res,
+          "Facebook login requires Facebook id and profile link to connect to your existing account.",
+          missingLinkFields
+        );
+      }
+
+      userRow = await linkSocialAccount(normalizedEmail, "facebook", profile.id!, profile.link!);
+
+      if (userRow && Boolean(userRow.is_business_account) !== isBusinessAccount) {
+        userRow = (await updateUserBusinessAccount(normalizedEmail, isBusinessAccount)) || userRow;
+      }
+
+      if (!userRow) {
+        return redirectToLoginWithError(res, "Unable to connect Facebook to your existing account.");
+      }
+
+      console.log("[DEBUG][Facebook OAuth] Mapped user fields:", {
+        facebookId: profile.id || null,
+        facebookURL: profile.link || null,
+        name: profile.name || null,
+        email: normalizedEmail,
+        birthday: profile.birthday || null,
+        isBusinessAccount,
+        userId: userRow.id,
+      });
+
+      userRow = await ensureWalletProvisioned(userRow);
+
+      await createSessionForUser(res, userRow.id);
+
+      const frontendOrigin = getFrontendOrigin();
+      const redirectTarget = new URL("/dashboard", frontendOrigin);
+      return res.redirect(redirectTarget.toString());
+    }
+
+    const missingFields = ["id", "name", "email", "birthday", "link"].filter((field) => {
+      const value = profile[field as keyof typeof profile];
+      return typeof value !== "string" || value.trim().length === 0;
+    });
+
+    if (missingFields.length > 0) {
+      return redirectToLoginWithError(
+        res,
+        "Facebook login requires email, birthday, profile link, and public profile access.",
+        missingFields
+      );
+    }
+
+    if (!userRow) {
+      const [firstName = "Facebook", ...rest] = (profile.name || "Facebook User").split(" ");
+      userRow = await createUser({
+        email: normalizedEmail,
+        firstName,
+        lastName: rest.join(" ") || "User",
+        authProvider: "facebook",
+        facebookId: profile.id || null,
+        facebookURL: profile.link || null,
+        emailVerified: true,
+        IsBusinessAccount: isBusinessAccount,
+      });
+    }
+
+    if (userRow && Boolean(userRow.is_business_account) !== isBusinessAccount) {
+      userRow = (await updateUserBusinessAccount(normalizedEmail, isBusinessAccount)) || userRow;
+    }
+
+    if (!userRow) {
+      return redirectToLoginWithError(res, "Unable to create or update your account.");
+    }
+
+    console.log("[DEBUG][Facebook OAuth] Mapped user fields:", {
+      facebookId: profile.id || null,
+      name: profile.name || null,
+      email: normalizedEmail,
+      birthday: profile.birthday || null,
+      link: profile.link || null,
+      isBusinessAccount,
+      userId: userRow.id,
+    });
+
+    userRow = await ensureWalletProvisioned(userRow);
+
+    await createSessionForUser(res, userRow.id);
+
+    const frontendOrigin = getFrontendOrigin();
+    const redirectTarget = new URL("/dashboard", frontendOrigin);
+    return res.redirect(redirectTarget.toString());
+  } catch (error) {
+    console.error("Facebook callback failed", error);
+    return redirectToLoginWithError(res, "Facebook sign-in failed.");
+  }
 }
 
 export async function login(req: Request, res: Response) {
@@ -75,7 +438,7 @@ export async function login(req: Request, res: Response) {
     return res.status(400).json({ error: "Email and password are required." });
   }
 
-  const userRow = await findUserByEmail(String(email).trim().toLowerCase());
+  let userRow = await findUserByEmail(String(email).trim().toLowerCase());
 
   // Always run a bcrypt compare, even when the account doesn't exist or has
   // no password set, so response timing doesn't leak whether the email is
@@ -87,6 +450,8 @@ export async function login(req: Request, res: Response) {
   if (!userRow || !userRow.password_hash || !isValid) {
     return res.status(401).json({ error: "Invalid email or password." });
   }
+
+  userRow = await ensureWalletProvisioned(userRow);
 
   await createSessionForUser(res, userRow.id);
 
@@ -115,7 +480,7 @@ export async function register(req: Request, res: Response) {
   }
 
   const passwordHash = await hashPassword(password);
-  const userRow = await createUser({
+  let userRow = await createUser({
     email: normalizedEmail,
     firstName,
     lastName,
@@ -123,6 +488,8 @@ export async function register(req: Request, res: Response) {
     authProvider: "local",
     IsBusinessAccount: accountType === "business",
   });
+
+  userRow = await ensureWalletProvisioned(userRow);
 
   // Grants a short-lived session so the user can complete /collect-info without
   // logging in again, without leaving a long-lived credential sitting in Redis.
@@ -195,12 +562,14 @@ export async function verifyOtp(req: Request, res: Response) {
 }
 
 export async function me(req: Request, res: Response) {
-  const userRow = await findUserById(Number(req.userId));
+  let userRow = await findUserById(Number(req.userId));
 
   if (!userRow) {
     res.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
     return res.status(401).json({ error: "Session is no longer valid." });
   }
+
+  userRow = await ensureWalletProvisioned(userRow);
 
   return res.json({ ok: true, user: sanitizeUser(userRow) });
 }

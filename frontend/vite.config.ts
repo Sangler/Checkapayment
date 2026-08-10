@@ -7,7 +7,12 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
@@ -28,7 +33,7 @@ export default defineConfig({
         icons: [{ src: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
       },
       workbox: {
-        globDirectory: ".output/public",
+        globDirectory: isProduction ? ".output/public" : ".",
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
       },
       devOptions: {

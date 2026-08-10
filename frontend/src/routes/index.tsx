@@ -154,7 +154,7 @@ function Index() {
 
           <div className="flex items-center gap-8 border-t border-border pt-10">
             <div className="flex flex-col">
-              <span className="font-display text-2xl font-bold">0.5%</span>
+              <span className="font-display text-2xl font-bold">0.3%</span>
               <span className="text-xs uppercase tracking-tighter text-muted-foreground">
                 Per  Paid  Bill
               </span>
@@ -382,9 +382,7 @@ function Index() {
                       <p>
                         USDC and USDT on Base, Arbitrum, and Polygon reach finality in{" "}
                         <span className="text-foreground">2–6 seconds</span>. Ethereum L1
-                        stablecoins finalize in ~15 seconds. Bitcoin invoices are marked
-                        &ldquo;paid&rdquo; after 1 confirmation (~10 minutes) and irrevocable at 3
-                        confirmations.
+                        stablecoins finalize in ~15 seconds.
                       </p>
                       <p>
                         Fiat off-ramp settlement to the payee&rsquo;s bank runs on a T+0 rail during
@@ -443,7 +441,7 @@ function Index() {
                       <tr>
                         <td className="px-4 py-3">USDC</td>
                         <td className="px-4 py-3 text-muted-foreground">
-                          Base · Arbitrum · Ethereum · Polygon · Solana
+                          Base · Arbitrum · Ethereum · Polygon
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">2–15s</td>
                         <td className="px-4 py-3 text-right text-primary">0.5%</td>
@@ -468,14 +466,8 @@ function Index() {
                         <td className="px-4 py-3 text-muted-foreground">~15s</td>
                         <td className="px-4 py-3 text-right text-primary">0.75%</td>
                       </tr>
-                      <tr>
-                        <td className="px-4 py-3">BTC</td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          Bitcoin Network Layer 1 · Lightning Network Layer 2
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">~10 min · instant</td>
-                        <td className="px-4 py-3 text-right text-primary">0.8%</td>
-                      </tr>
+
+               
                     </tbody>
                   </table>
                 </div>
@@ -616,7 +608,7 @@ function Index() {
                 <div className="divide-y divide-border">
                   <details className="group py-6" open>
                     <summary className="flex cursor-pointer items-start justify-between gap-6 font-display text-lg font-semibold">
-                      Why the 0.5%–1% band?
+                      Why the 0.3%–0.5% band?
                       <span className="mt-1 font-mono text-primary transition-transform group-open:rotate-45">
                         +
                       </span>
@@ -627,9 +619,8 @@ function Index() {
                         is set per asset at contract deploy time and cannot be changed retroactively:
                       </p>
                       <ul className="space-y-1 pl-5 [&_li]:list-disc [&_li]:marker:text-primary">
-                        <li>Stablecoins &amp; USDC/USDT/CADC/EURC — 50 bps (0.5%)</li>
-                        <li>ETH invoices — 75 bps (0.75%) to cover volatility hedging</li>
-                        <li>BTC invoices — 100 bps (1.0%) to cover UTXO consolidation &amp; on-ramp</li>
+                        <li>Stablecoins &amp; USDC/USDT/CADC/EURC — 30 bps (0.3%)</li>
+                        <li>ETH invoices — 50 bps (0.5%) to cover volatility hedging</li>
                       </ul>
                       <p>
                         Compared to Visa (~2.9% + $0.30) and Stripe cross-border (~3.9%), a $50k
@@ -660,9 +651,9 @@ function Index() {
                       </span>
                     </summary>
                     <p className="mt-4 leading-relaxed text-muted-foreground">
-                      CheckAPay sponsors gas via ERC-4337 paymasters on all L2s and Bitcoin
-                      Lightning. On Ethereum L1, gas is netted from the 0.5% fee — never charged
-                      separately to your treasury.
+                      CheckAPay sponsors gas via ERC-4337 paymasters on supported L2 networks.
+                      On Ethereum L1, gas is netted from the 0.5% fee — never charged separately
+                      to your treasury.
                     </p>
                   </details>
                 </div>

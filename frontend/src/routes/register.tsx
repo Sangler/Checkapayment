@@ -40,7 +40,7 @@ export const Route = createFileRoute("/register")({
       {
         property: "og:description",
         content:
-          "Provision your organization on the CheckAPay payment splitter. Stablecoin, ETH, and BTC settlement in minutes.",
+          "Provision your organization on the CheckAPay payment splitter. Stablecoin and ETH settlement in minutes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

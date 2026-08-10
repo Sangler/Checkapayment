@@ -169,7 +169,7 @@ function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex flex-1 flex-col space-y-1 px-3 py-4">
         {NAV_ITEMS.map(({ label, to, icon: Icon }) => (
           <Link
             key={to}
@@ -184,6 +184,23 @@ function Sidebar({
             <span className={`truncate ${collapsed ? "hidden" : "hidden md:inline"}`}>{label}</span>
           </Link>
         ))}
+
+        {!guest ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={signingOut}
+            title="Log out"
+            className={`mt-auto flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:bg-accent/50 hover:text-destructive disabled:opacity-60 ${
+              collapsed ? "justify-center" : "justify-center md:justify-start"
+            }`}
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className={`truncate ${collapsed ? "hidden" : "hidden md:inline"}`}>
+              {signingOut ? "Signing out..." : "Log out"}
+            </span>
+          </button>
+        ) : null}
       </nav>
     </aside>
   );

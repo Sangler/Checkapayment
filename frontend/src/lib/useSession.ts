@@ -14,6 +14,7 @@ export interface SessionUser {
   points?: number;
   createdAt?: string;
   dateOfBirth?: string | null;
+  evmAddress?: string | null;
   isBusinessAccount?: boolean;
   employmentStatus?: string | null;
   jobTitle?: string | null;

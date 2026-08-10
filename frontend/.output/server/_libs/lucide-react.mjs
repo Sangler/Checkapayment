@@ -200,6 +200,30 @@ var CircleCheck = createLucideIcon("circle-check", [["circle", {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+var CircleUserRound = createLucideIcon("circle-user-round", [
+	["path", {
+		d: "M18 20a6 6 0 0 0-12 0",
+		key: "1qehca"
+	}],
+	["circle", {
+		cx: "12",
+		cy: "10",
+		r: "4",
+		key: "1h16sb"
+	}],
+	["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}]
+]);
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
 var Copy = createLucideIcon("copy", [["rect", {
 	width: "14",
 	height: "14",
@@ -435,4 +459,4 @@ var X = createLucideIcon("x", [["path", {
 	key: "d8bk6v"
 }]]);
 //#endregion
-export { ArrowUpRight as _, Search as a, Activity as b, Mail as c, Info as d, Gift as f, Check as g, CircleCheck as h, Settings as i, LogOut as l, Copy as m, User as n, Phone as o, FilePlusCorner as p, ShieldCheck as r, Menu as s, X as t, LoaderCircle as u, ArrowRight as v, ArrowLeftRight as y };
+export { Check as _, Search as a, ArrowLeftRight as b, Mail as c, Info as d, Gift as f, CircleCheck as g, CircleUserRound as h, Settings as i, LogOut as l, Copy as m, User as n, Phone as o, FilePlusCorner as p, ShieldCheck as r, Menu as s, X as t, LoaderCircle as u, ArrowUpRight as v, Activity as x, ArrowRight as y };

@@ -2,6 +2,8 @@ import * as crypto from 'crypto';
 import { query } from '../db/postgres';
 
 export const userSchema = {
+  authSubjectId: { type: 'string' },
+  evmAddress: { type: 'string' },
   KYCStatus: { type: 'string', default: 'pending' },
   KYCReference: { type: 'string' },
   KYCRejectionCount: { type: 'number', default: 0 },
@@ -17,9 +19,11 @@ export const userSchema = {
     phoneNumber: { type: 'string' },
   },
   passwordHash: { type: 'string' },
+  pincodeHash: { type: 'string' },
   authProvider: { type: 'string', default: 'local' },
   googleId: { type: 'string' },
-  appleIOSId: { type: 'string' },
+  facebookId: { type: 'string' },
+  facebookURL: { type: 'string' },
   emailVerified: { type: 'boolean', default: false },
   phoneVerified: { type: 'boolean', default: false },
   // Personal Info
@@ -27,7 +31,7 @@ export const userSchema = {
   lastName: { type: 'string', required: true },
   preferredName: { type: 'string' },
   dateOfBirth: { type: 'date', default: null },
-  
+  gender: { type: 'string' },
   // COMPLIANCE & BILLING
   taxIdNumber: { type: 'string' }, // CRA Business Number
 
@@ -94,8 +98,11 @@ export async function ensureReferralCode(userData: any) {
 export async function createUser(userData: any) {
   const referralCode = await ensureReferralCode(userData);
   const now = new Date();
+  const authSubjectId = userData.authSubjectId || crypto.randomUUID();
 
   const values = [
+    authSubjectId,
+    userData.evmAddress || null,
     userData.KYCStatus || 'pending',
     userData.KYCReference || null,
     userData.KYCRejectionCount || 0,
@@ -124,6 +131,8 @@ export async function createUser(userData: any) {
     userData.passwordHash || null,
     userData.authProvider || 'local',
     userData.googleId || null,
+    userData.facebookId || null,
+    userData.facebookURL || null,
     userData.emailVerified || false,
     userData.phoneVerified || false,
     referralCode,
@@ -136,14 +145,15 @@ export async function createUser(userData: any) {
 
   const result = await query(`
     INSERT INTO users (
+      auth_subject_id, evm_address,
       kyc_status, kyc_reference, kyc_rejection_count, kyc_document_url, email, phone_number, phone_country_code,
       first_name, last_name, preferred_name, date_of_birth, street, address_line2, postal_code, city,
       province, country, last_kyc_geo_raw, last_kyc_geo_iso2, is_business_account, employment_status, job_title,
-      business_name, business_type, tax_id_number, password_hash, auth_provider, google_id, email_verified,
-      phone_verified, referral_code, referred_by, points, identity_key, created_at, updated_at
+      business_name, business_type, tax_id_number, password_hash, auth_provider, google_id, facebook_id,
+      facebook_url, email_verified, phone_verified, referral_code, referred_by, points, identity_key, created_at, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-      $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36
+      $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40
     ) RETURNING *
   `, values);
 
@@ -157,5 +167,72 @@ export async function findUserByEmail(email: string) {
 
 export async function findUserById(id: number) {
   const result = await query('SELECT * FROM users WHERE id = $1 LIMIT 1', [id]);
+  return result.rows[0] || null;
+}
+
+export async function findUserByAuthSubjectId(authSubjectId: string) {
+  const result = await query('SELECT * FROM users WHERE auth_subject_id = $1 LIMIT 1', [authSubjectId]);
+  return result.rows[0] || null;
+}
+
+export async function findAllUsersWithEvmAddress() {
+  const result = await query('SELECT id, auth_subject_id, evm_address FROM users WHERE evm_address IS NOT NULL');
+  return result.rows;
+}
+
+export async function updateUserEvmAddress(userId: number, evmAddress: string) {
+  const result = await query(
+    `UPDATE users
+     SET evm_address = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [userId, evmAddress]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function updateUserPincodeHash(userId: number, pincodeHash: string) {
+  const result = await query(
+    `UPDATE users
+     SET pincode_hash = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [userId, pincodeHash]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function linkSocialAccount(
+  email: string,
+  authProvider: 'google' | 'facebook',
+  socialId: string,
+  socialUrl?: string | null
+) {
+  const socialColumn = authProvider === 'google' ? 'google_id' : 'facebook_id';
+  const socialUrlAssignment = authProvider === 'facebook' ? ', facebook_url = $4' : '';
+  const result = await query(
+    `UPDATE users
+     SET auth_provider = $2, ${socialColumn} = $3${socialUrlAssignment}, email_verified = true, updated_at = NOW()
+     WHERE email = $1
+     RETURNING *`,
+    authProvider === 'facebook'
+      ? [email, authProvider, socialId, socialUrl || null]
+      : [email, authProvider, socialId]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function updateUserBusinessAccount(email: string, isBusinessAccount: boolean) {
+  const result = await query(
+    `UPDATE users
+     SET is_business_account = $2, updated_at = NOW()
+     WHERE email = $1
+     RETURNING *`,
+    [email, isBusinessAccount]
+  );
+
   return result.rows[0] || null;
 }

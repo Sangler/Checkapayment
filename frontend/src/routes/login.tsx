@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { AuthShell } from "../components/AuthShell";
 import { api } from "../lib/api";
 
@@ -33,6 +33,39 @@ function LoginPage() {
     type: "idle",
     message: "",
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    const missing = params.get("missing");
+
+    if (!error) {
+      return;
+    }
+
+    const missingFields = missing
+      ? missing
+          .split(",")
+          .map((field) => field.trim())
+          .filter(Boolean)
+          .join(", ")
+      : "";
+
+    setStatus({
+      type: "error",
+      message: missingFields ? `${error} Missing fields: ${missingFields}.` : error,
+    });
+  }, []);
+
+  const handleGoogleLogin = () => {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    window.location.assign(`${apiBaseUrl}/auth/google`);
+  };
+
+  const handleFacebookLogin = () => {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    window.location.assign(`${apiBaseUrl}/auth/facebook`);
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -86,6 +119,7 @@ function LoginPage() {
           <input
             id="password"
             type="password"
+            autoComplete="current-password"
             placeholder="••••••••••••"
             value={password}
             onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
@@ -127,8 +161,16 @@ function LoginPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <SsoButton label="APPLE" icon={<AppleIcon className="h-4 w-4" />} />
-          <SsoButton label="GOOGLE" icon={<GoogleIcon className="h-4 w-4" />} />
+          <SsoButton
+            label="GOOGLE"
+            icon={<GoogleIcon className="h-4 w-4" />}
+            onClick={handleGoogleLogin}
+          />
+          <SsoButton
+            label="FACEBOOK"
+            icon={<FacebookIcon className="h-4 w-4" />}
+            onClick={handleFacebookLogin}
+          />
         </div>
 
         <p className="pt-4 text-center text-sm text-muted-foreground">
@@ -168,6 +210,7 @@ function Field({
       <input
         id={id}
         type={type}
+        autoComplete={type === "email" ? "email" : "off"}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -177,10 +220,11 @@ function Field({
   );
 }
 
-function SsoButton({ label, icon }: { label: string; icon: ReactNode }) {
+function SsoButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="flex items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-card/60"
     >
       {icon}
@@ -189,13 +233,7 @@ function SsoButton({ label, icon }: { label: string; icon: ReactNode }) {
   );
 }
 
-function AppleIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M16.365 1.43c0 1.14-.417 2.06-1.25 2.86-.897.86-1.99 1.36-3.083 1.27-.037-1.09.44-2.13 1.24-2.9.9-.87 2.113-1.36 3.093-1.23zM20.03 17.24c-.393.9-.86 1.79-1.407 2.61-.75 1.12-1.363 1.9-1.83 2.34-.72.72-1.49 1.09-2.31 1.11-.593.01-1.31-.16-2.15-.51-.84-.35-1.61-.52-2.31-.51-.73.01-1.52.18-2.37.51-.85.35-1.53.53-2.05.55-.79.03-1.58-.35-2.36-1.14-.51-.5-1.15-1.32-1.94-2.46-.85-1.22-1.55-2.64-2.09-4.26-.58-1.75-.87-3.44-.87-5.08 0-1.88.4-3.5 1.21-4.85.63-1.09 1.47-1.95 2.51-2.58 1.04-.63 2.17-.96 3.39-.98.63 0 1.46.2 2.51.6 1.04.4 1.71.6 2.01.6.22 0 .96-.23 2.21-.7 1.18-.44 2.18-.62 2.99-.55 2.21.18 3.87 1.05 4.98 2.62-1.98 1.2-2.96 2.88-2.94 5.02.02 1.67.62 3.06 1.8 4.16.53.51 1.12.9 1.78 1.18-.14.42-.29.83-.46 1.24z" />
-    </svg>
-  );
-}
+
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -215,6 +253,18 @@ function GoogleIcon({ className }: { className?: string }) {
       <path
         fill="#EA4335"
         d="M12 4.75c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.94 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.61l4 3.09C6.22 6.86 8.87 4.75 12 4.75z"
+      />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#1877F2" />
+      <path
+        d="M13.2 20v-7.2h2.4l.3-2.8h-2.7V4.8c0-.8.2-1.4 1.4-1.4h1.5V1.1c-.3-.1-1.1-.2-2.2-.2-2.2 0-3.7 1.3-3.7 3.8v2.1H8.3v2.8h2.4V20h2.5Z"
+        fill="white"
       />
     </svg>
   );

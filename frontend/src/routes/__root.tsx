@@ -87,6 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@CheckAPay" },
       { name: "theme-color", content: "#7c3aed" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "CheckAPay" },
     ],
@@ -117,7 +118,8 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly) inject attributes here post-SSR */}
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>

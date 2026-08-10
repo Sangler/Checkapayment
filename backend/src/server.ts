@@ -5,6 +5,9 @@ import cookieParser from "cookie-parser";
 import { pool } from "./db/postgres";
 import { initializeTemporaryStore, isRedisEnabled } from "./services/authStore";
 import authRoutes from "./routes/auth.routes";
+import webauthnRoutes from "./routes/webauthn.routes";
+import walletRoutes from "./routes/wallet.routes";
+import { startIndexer } from "./services/indexerService";
 
 const app = express();
 
@@ -41,8 +44,15 @@ app.get("/health", (_, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/auth/webauthn", webauthnRoutes);
+app.use("/api/auth/webauthn", webauthnRoutes);
+app.use("/wallet", walletRoutes);
+app.use("/api/wallet", walletRoutes);
 
 const PORT = Number(process.env.PORT) || 3000;
+
+
 
 async function start() {
   await initializeTemporaryStore();
@@ -57,6 +67,8 @@ async function start() {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+
+  startIndexer();
 }
 
 start();
