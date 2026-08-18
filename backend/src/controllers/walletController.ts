@@ -1,8 +1,12 @@
 import type { Request, Response } from "express";
 import { isAddress, parseTransaction, recoverTransactionAddress } from "viem";
 import { findUserById, updateUserEvmAddress } from "../models/Users";
-import { createWalletTransaction } from "../models/Transactions";
-import { createWalletIntent, findWalletIntentById, markWalletIntentRelayed } from "../models/WalletIntents";
+import {
+  createWalletTransaction,
+  createWalletIntent,
+  findWalletIntentById,
+  markWalletIntentRelayed,
+} from "../models/Transactions";
 import { consumeTxAuthToken } from "../services/txAuthService";
 import { getChain, getPublicClient, SUPPORTED_NETWORKS, type SupportedNetwork } from "../services/chainClients";
 import { buildTransferCallData, ERC20_ABI, getTrackedTokens, NATIVE_TOKEN_SENTINEL } from "../services/tokensConfig";
@@ -175,10 +179,10 @@ export async function relayIntent(req: Request, res: Response) {
   if (!intentRow || intentRow.user_id !== userId) {
     return res.status(404).json({ error: "Intent not found." });
   }
-  if (intentRow.status !== "pending") {
+  if (intentRow.status !== "pending_signature") {
     return res.status(409).json({ error: `Intent already ${intentRow.status}.` });
   }
-  if (new Date(intentRow.expires_at).getTime() < Date.now()) {
+  if (intentRow.expires_at && new Date(intentRow.expires_at).getTime() < Date.now()) {
     return res.status(410).json({ error: "Intent expired. Create a new one." });
   }
 
@@ -199,9 +203,9 @@ export async function relayIntent(req: Request, res: Response) {
 
   const matchesIntent =
     signer.toLowerCase() === intentRow.from_address.toLowerCase() &&
-    parsedTo === intentRow.call_to.toLowerCase() &&
-    parsedValue === BigInt(intentRow.call_value) &&
-    parsedData === intentRow.call_data.toLowerCase() &&
+    parsedTo === (intentRow.call_to || "").toLowerCase() &&
+    parsedValue === BigInt(intentRow.call_value || "0") &&
+    parsedData === (intentRow.call_data || "0x").toLowerCase() &&
     parsed.chainId === intentRow.chain_id;
 
   if (!matchesIntent) {
@@ -212,24 +216,9 @@ export async function relayIntent(req: Request, res: Response) {
     const publicClient = getPublicClient(intentRow.network as SupportedNetwork);
     const txHash = await publicClient.sendRawTransaction({ serializedTransaction });
 
-    await markWalletIntentRelayed(intentRow.id, txHash);
+    const updatedTransaction = await markWalletIntentRelayed(intentRow.id, txHash);
 
-    const userRow = await findUserById(userId);
-    const transactionRow = await createWalletTransaction({
-      userId,
-      merchantEmail: userRow?.email,
-      type: "withdrawal",
-      network: intentRow.network,
-      asset: intentRow.asset,
-      tokenContractAddress: intentRow.token_contract_address || null,
-      amount: intentRow.amount,
-      fromAddress: intentRow.from_address,
-      toAddress: intentRow.to_address,
-      txHash,
-      status: "pending",
-    });
-
-    return res.json({ ok: true, txHash, transaction: transactionRow });
+    return res.json({ ok: true, txHash, transaction: updatedTransaction });
   } catch (error) {
     console.error("Relay failed to broadcast", error);
     return res.status(502).json({ error: "Failed to broadcast transaction." });

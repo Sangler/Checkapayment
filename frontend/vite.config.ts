@@ -10,8 +10,10 @@ import { VitePWA } from "vite-plugin-pwa";
 const isProduction = process.env.NODE_ENV === "production";
 
 export default defineConfig({
-  resolve: {
-    tsconfigPaths: true,
+  vite: {
+    resolve: {
+      tsconfigPaths: true,
+    },
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).

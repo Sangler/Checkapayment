@@ -1,21 +1,75 @@
 CheckAPay/
 │
-├── frontend/          ← TanStack Start (TypeScript)
-│
-├── backend/
+├── frontend/                   ← TanStack Start (React 19, TypeScript, Vite 8, TailwindCSS v4)
 │   ├── src/
-│   │   ├── config/
+│   │   ├── components/
+│   │   │   ├── AppShell.tsx    ← Authenticated layout (sidebar, topbar, nav)
+│   │   │   ├── AuthShell.tsx   ← Unauthenticated layout (centered card)
+│   │   │   ├── WalletCard.tsx  ← Wallet widget (balances, send, receive)
+│   │   │   └── ui/             ← shadcn/ui components (Radix UI primitives)
+│   │   ├── lib/
+│   │   │   ├── api.ts          ← Axios instance
+│   │   │   ├── embeddedWallet.ts ← Web3Auth embedded wallet helpers
+│   │   │   ├── fees.ts         ← Fee schedule data
+│   │   │   └── useSession.ts   ← Auth session hook (GET /auth/me)
+│   │   ├── routes/             ← File-based routes (TanStack Router)
+│   │   │   ├── __root.tsx      ← App root (QueryClient, head tags)
+│   │   │   ├── index.tsx       ← Landing page (/)                    ✅ Done
+│   │   │   ├── about.tsx       ← About page (/about)                 ✅ Done
+│   │   │   ├── login.tsx       ← Login (/login)                      ✅ Done
+│   │   │   ├── register.tsx    ← Registration (/register)            ✅ Done
+│   │   │   ├── collect-info.tsx← KYB onboarding (/collect-info)      ✅ Done
+│   │   │   ├── forgot-password.tsx ← Password recovery               ✅ Done
+│   │   │   ├── dashboard.tsx   ← Dashboard (/dashboard)              ✅ Done
+│   │   │   ├── create-invoice.tsx ← Invoice creation                 🚧 WIP
+│   │   │   ├── transactions.tsx ← Transaction history                🚧 WIP
+│   │   │   └── settings.tsx    ← Account settings                    🚧 WIP
+│   │   ├── assets/             ← Static assets
+│   │   ├── router.tsx          ← TanStack Router instance
+│   │   ├── server.ts           ← Nitro SSR server entry
+│   │   ├── start.ts            ← Client entry point
+│   │   └── styles.css          ← Global styles + Tailwind v4 tokens
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+│
+├── backend/                    ← Express 5 (TypeScript, Node.js)
+│   ├── src/
 │   │   ├── controllers/
+│   │   │   ├── authController.ts    ← Register, login, OAuth, OTP, session mgmt
+│   │   │   ├── walletController.ts  ← Wallet bind, intent, relay
+│   │   │   ├── webauthnController.ts← Passkey registration + authentication
+│   │   │   └── pinController.ts     ← PIN step-up for tx authorization
+│   │   ├── db/
+│   │   │   ├── postgres.ts     ← pg Pool singleton
+│   │   │   └── schema.sql      ← Full DB schema (tables, indexes, constraints)
 │   │   ├── middleware/
+│   │   │   └── auth.ts         ← JWT session cookie verification
 │   │   ├── models/
+│   │   │   ├── Users.ts        ← User CRUD + EVM address management
+│   │   │   ├── Transactions.ts ← Unified Ledger (Invoices, Deposits, & Wallet Intents)
+│   │   │   ├── WebauthnCredentials.ts ← Passkey storage (1 User -> N Passkeys)
+│   │   │   └── Supports.ts     ← Support ticket model
 │   │   ├── routes/
+│   │   │   ├── auth.routes.ts  ← /auth + /api/auth endpoints
+│   │   │   ├── wallet.routes.ts← /wallet + /api/wallet endpoints
+│   │   │   └── webauthn.routes.ts ← /auth/webauthn endpoints
 │   │   ├── services/
-│   │   ├── utils/
-│   │   ├── app.ts
-│   │   └── server.ts
-│   │
+│   │   │   ├── authStore.ts    ← Redis session + temp values (in-memory fallback)
+│   │   │   ├── chainClients.ts ← viem public clients per network
+│   │   │   ├── indexerService.ts ← Multi-chain indexer (balance refresh + deposit scan)
+│   │   │   ├── mailService.ts  ← Nodemailer email delivery
+│   │   │   ├── passwordService.ts ← bcrypt hash + verify
+│   │   │   ├── pinService.ts   ← PIN step-up verification
+│   │   │   ├── tokenService.ts ← JWT sign + verify for sessions
+│   │   │   ├── tokensConfig.ts ← Tracked tokens (USDC + native) + ERC-20 ABI
+│   │   │   ├── txAuthService.ts ← One-time tx authorization tokens
+│   │   │   ├── walletService.ts ← EVM address provisioning (deterministic)
+│   │   │   └── webauthnService.ts ← @simplewebauthn/server helpers
+│   │   └── server.ts           ← Entry point (Express setup + indexer start)
 │   ├── package.json
 │   └── tsconfig.json
 │
-└── shared/
-    └── types/
+├── docker-compose.yml          ← PostgreSQL 16 + Redis 7.2
+├── Workflow.txt                ← This file
+└── README.md                   ← Project overview + getting started

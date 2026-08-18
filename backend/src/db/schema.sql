@@ -1,8 +1,12 @@
 -- CheckAPay database schema
 -- Run this once (or re-run any time - every statement below is idempotent)
 -- against the "CheckAPay" Postgres database (e.g. via pgAdmin4's Query Tool,
--- or `psql -d CheckAPay -f schema.sql`) to create/update the tables the
--- backend models in src/models/*.ts expect.
+-- or `psql -d CheckAPay -f schema.sql`) to create/update the tables expected.
+
+-- =========================================================================
+-- STRICT RULE: DO NOT add any new database tables/schemas without explicit
+-- permission from the user!
+-- =========================================================================
 
 -- =========================================================================
 -- users
@@ -52,7 +56,7 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Idempotent column additions in case an older version of this table already exists.
+-- Idempotent column additions
 ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_subject_id VARCHAR(128);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS evm_address VARCHAR(42);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_status VARCHAR(50) DEFAULT 'pending';
@@ -92,8 +96,6 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS identity_key VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
--- Unique constraints applied separately (not inline) so they can be added
--- safely to a table that may already exist without them.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_email_key') THEN
@@ -108,19 +110,12 @@ CREATE INDEX IF NOT EXISTS idx_users_auth_subject_id ON users(auth_subject_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_evm_address_unique ON users(evm_address) WHERE evm_address IS NOT NULL;
 
 -- =========================================================================
--- transactions
---
--- NOTE: `user_id` is the single owner column for a transaction row - it's
--- used both for "who this merchant-invoice payment is for" and "which
--- wallet this deposit/withdrawal belongs to". There is intentionally no
--- separate merchant_id/crypto_asset/payee_public_address/payer_public_address
--- /transaction_hash/settled_at duplicate columns - those were consolidated
--- into user_id/asset/to_address/from_address/tx_hash/confirmed_at.
+-- transactions (Consolidated Unified Ledger: Invoices, Deposits & Spending Intents)
 -- =========================================================================
 CREATE TABLE IF NOT EXISTS transactions (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id),
-  type VARCHAR(30),
+  type VARCHAR(30),                          -- deposit, withdrawal, invoice_payment
   asset VARCHAR(20) DEFAULT 'USDC',
   token_contract_address VARCHAR(64),
   amount NUMERIC(78, 0),
@@ -129,14 +124,21 @@ CREATE TABLE IF NOT EXISTS transactions (
   tx_hash VARCHAR(80),
   merchant_email VARCHAR(255) NOT NULL,
   merchant_reference_id VARCHAR(100) NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending',
+  status VARCHAR(50) DEFAULT 'pending',      -- pending_signature, pending, confirmed, failed, expired
   network VARCHAR(50) DEFAULT 'Base',
-  gross_amount_crypto NUMERIC(18, 8) NOT NULL,
-  platform_fee_crypto NUMERIC(18, 8) NOT NULL,
+  gross_amount_crypto NUMERIC(18, 8) DEFAULT 0,
+  platform_fee_crypto NUMERIC(18, 8) DEFAULT 0,
   fiat_currency VARCHAR(10) DEFAULT 'CAD',
   exchange_rate_at_execution NUMERIC(18, 8),
   splitter_contract_address VARCHAR(64),
   gas_fee_paid NUMERIC(78, 0),
+  chain_id INTEGER,
+  call_to VARCHAR(64),
+  call_data TEXT DEFAULT '0x',
+  call_value NUMERIC(78, 0) DEFAULT 0,
+  nonce VARCHAR(66),
+  expires_at TIMESTAMPTZ,
+  relayed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now(),
   confirmed_at TIMESTAMPTZ,
   tax_rate NUMERIC(6, 4) DEFAULT 0,
@@ -153,6 +155,13 @@ ALTER TABLE transactions ADD COLUMN IF NOT EXISTS to_address VARCHAR(64);
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS tx_hash VARCHAR(80);
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS splitter_contract_address VARCHAR(64);
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS gas_fee_paid NUMERIC(78, 0);
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS chain_id INTEGER;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS call_to VARCHAR(64);
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS call_data TEXT DEFAULT '0x';
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS call_value NUMERIC(78, 0) DEFAULT 0;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS nonce VARCHAR(66);
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS relayed_at TIMESTAMPTZ;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMPTZ;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(6, 4) DEFAULT 0;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS tips_add_on NUMERIC(18, 8) DEFAULT 0;
@@ -168,29 +177,11 @@ CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_tx_hash ON transactions(tx_hash);
 CREATE INDEX IF NOT EXISTS idx_transactions_network_asset_status ON transactions(network, asset, status);
 
--- =========================================================================
--- support_requests
--- =========================================================================
-CREATE TABLE IF NOT EXISTS support_requests (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  user_email VARCHAR(255) NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  content TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_support_requests_user_id ON support_requests(user_id);
+-- Clean up old deprecated wallet_intents table if present
+DROP TABLE IF EXISTS wallet_intents;
 
 -- =========================================================================
--- webauthn_credentials
--- One row per registered passkey/authenticator (a user can have several,
--- e.g. one per device: laptop Windows Hello, phone Face ID, security key).
--- auth_subject_id / evm_address on `users` are NEVER derived from these
--- rows - a credential is only a way to prove control of an existing
--- users.id, never a new identity.
+-- webauthn_credentials (1 User -> Multiple Authenticators / Passkeys / Biometrics)
 -- =========================================================================
 CREATE TABLE IF NOT EXISTS webauthn_credentials (
   id SERIAL PRIMARY KEY,
@@ -217,11 +208,6 @@ CREATE INDEX IF NOT EXISTS idx_webauthn_credentials_user_id ON webauthn_credenti
 
 -- =========================================================================
 -- balances
--- Latest known balance per user/network/asset, refreshed by the multi-chain
--- indexer (services/indexerService.ts) via periodic multicall polling.
--- token_contract_address is '' (empty string, not NULL) for a chain's
--- native asset (ETH/MATIC/etc.) so the unique constraint below still works -
--- Postgres treats NULLs as distinct, which would otherwise allow duplicates.
 -- =========================================================================
 CREATE TABLE IF NOT EXISTS balances (
   id SERIAL PRIMARY KEY,
@@ -245,8 +231,6 @@ CREATE INDEX IF NOT EXISTS idx_balances_user_id ON balances(user_id);
 
 -- =========================================================================
 -- indexer_state
--- One row per network, tracking the last block scanned for deposit
--- detection so the indexer can resume where it left off after a restart.
 -- =========================================================================
 CREATE TABLE IF NOT EXISTS indexer_state (
   network VARCHAR(50) PRIMARY KEY,
@@ -255,34 +239,17 @@ CREATE TABLE IF NOT EXISTS indexer_state (
 );
 
 -- =========================================================================
--- wallet_intents
--- A short-lived, single-use spending intent the backend issues and the
--- user's own embedded wallet (client-side) signs. /wallet/relay only
--- broadcasts a signature that matches this row's call_to/call_data/
--- call_value/chain_id and recovers to from_address - the backend never
--- holds or derives a private key for the user.
+-- support_requests
 -- =========================================================================
-CREATE TABLE IF NOT EXISTS wallet_intents (
+CREATE TABLE IF NOT EXISTS support_requests (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id),
-  network VARCHAR(50) NOT NULL,
-  asset VARCHAR(20) NOT NULL,
-  token_contract_address VARCHAR(64) NOT NULL DEFAULT '',
-  from_address VARCHAR(64) NOT NULL,
-  to_address VARCHAR(64) NOT NULL,
-  amount NUMERIC(78, 0) NOT NULL,
-  chain_id INTEGER NOT NULL,
-  call_to VARCHAR(64) NOT NULL,
-  call_data TEXT NOT NULL DEFAULT '0x',
-  call_value NUMERIC(78, 0) NOT NULL DEFAULT 0,
-  nonce VARCHAR(66) NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending',
-  tx_hash VARCHAR(80),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  expires_at TIMESTAMPTZ NOT NULL,
-  relayed_at TIMESTAMPTZ
+  user_id INTEGER REFERENCES users(id),
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  user_email VARCHAR(255) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_intents_from_nonce ON wallet_intents(from_address, nonce);
-CREATE INDEX IF NOT EXISTS idx_wallet_intents_user_id ON wallet_intents(user_id);
-CREATE INDEX IF NOT EXISTS idx_wallet_intents_status ON wallet_intents(status);
+CREATE INDEX IF NOT EXISTS idx_support_requests_user_id ON support_requests(user_id);
