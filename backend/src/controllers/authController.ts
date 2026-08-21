@@ -314,9 +314,6 @@ export async function facebookCallback(req: Request, res: Response) {
       error?: { message?: string };
     };
 
-    // Temporary debug log for schema design: inspect Facebook profile payload after sign-in.
-    console.log("[DEBUG][Facebook OAuth] Profile payload:", profile);
-
     if (!profileResponse.ok || profile.error) {
       console.error("Facebook profile fetch failed", profile);
       return redirectToLoginWithError(res, profile.error?.message || "Unable to read Facebook profile.");
@@ -353,16 +350,6 @@ export async function facebookCallback(req: Request, res: Response) {
       if (!userRow) {
         return redirectToLoginWithError(res, "Unable to connect Facebook to your existing account.");
       }
-
-      console.log("[DEBUG][Facebook OAuth] Mapped user fields:", {
-        facebookId: profile.id || null,
-        facebookURL: profile.link || null,
-        name: profile.name || null,
-        email: normalizedEmail,
-        birthday: profile.birthday || null,
-        isBusinessAccount,
-        userId: userRow.id,
-      });
 
       userRow = await ensureWalletProvisioned(userRow);
 
@@ -407,16 +394,6 @@ export async function facebookCallback(req: Request, res: Response) {
     if (!userRow) {
       return redirectToLoginWithError(res, "Unable to create or update your account.");
     }
-
-    console.log("[DEBUG][Facebook OAuth] Mapped user fields:", {
-      facebookId: profile.id || null,
-      name: profile.name || null,
-      email: normalizedEmail,
-      birthday: profile.birthday || null,
-      link: profile.link || null,
-      isBusinessAccount,
-      userId: userRow.id,
-    });
 
     userRow = await ensureWalletProvisioned(userRow);
 

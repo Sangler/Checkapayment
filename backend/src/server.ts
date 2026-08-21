@@ -58,8 +58,7 @@ async function start() {
   await initializeTemporaryStore();
 
   try {
-    const result = await pool.query("SELECT NOW() as now");
-    console.log("Database connection OK:", result.rows[0].now);
+    await pool.query("SELECT NOW() as now");
   } catch (error) {
     console.error("Database connection check failed:", error);
   }

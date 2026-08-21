@@ -183,3 +183,47 @@
 @utility bg-radial-glow {
   background: radial-gradient(circle at center, var(--color-primary) / 10%, transparent 70%);
 }
+
+/* =========================================================================
+ * Multi-Device Media Query Frames & Sizing Guidelines
+ * Phone (<640px), Tablet (640px-1024px), Laptop (1024px-1280px), Desktop (>1280px)
+ * ========================================================================= */
+
+/* Mobile Phones (Portrait & Compact) */
+@media (max-width: 639px) {
+  .device-frame-modal {
+    width: calc(100vw - 1.5rem);
+    max-height: 90vh;
+    padding: 1rem;
+  }
+  .device-frame-qr {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* Tablets (Portrait & Small Laptops) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .device-frame-modal {
+    width: 90vw;
+    max-width: 540px;
+    max-height: 88vh;
+  }
+  .device-frame-qr {
+    width: 220px;
+    height: 220px;
+  }
+}
+
+/* Laptops & Standard Monitors */
+@media (min-width: 1024px) {
+  .device-frame-modal {
+    max-width: 580px;
+    max-height: 85vh;
+  }
+  .device-frame-qr {
+    width: 240px;
+    height: 240px;
+  }
+}
+

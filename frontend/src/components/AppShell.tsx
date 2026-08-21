@@ -10,6 +10,7 @@ import {
   UserCircle2,
   User as UserIcon,
 } from "lucide-react";
+import { Logo } from "./Logo";
 import { api } from "../lib/api";
 import { isProfileComplete, type SessionUser } from "../lib/useSession";
 
@@ -33,18 +34,60 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-export function AppShell({ user, guest = false, searchValue, onSearchChange, children }: AppShellProps) {
+export function AppShell({
+  user,
+  guest = false,
+  searchValue = "",
+  onSearchChange,
+  children,
+}: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-primary/30">
-      <div className="flex min-h-screen">
-        <Sidebar collapsed={collapsed} onToggleCollapse={() => setCollapsed((value) => !value)} user={user} guest={guest} />
+    <div className="flex min-h-screen bg-background text-foreground">
+      {/* Desktop / tablet sidebar */}
+      <Sidebar
+        user={user}
+        guest={guest}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((value) => !value)}
+      />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar searchValue={searchValue} onSearchChange={onSearchChange} />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
-        </div>
+      {/* Mobile drawer backdrop */}
+      {sidebarOpen ? (
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      ) : null}
+
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform border-r border-border bg-card transition-transform duration-200 ease-in-out md:hidden ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <Sidebar
+          user={user}
+          guest={guest}
+          collapsed={false}
+          onToggleCollapse={() => setSidebarOpen(false)}
+          onNavigate={() => setSidebarOpen(false)}
+        />
+      </div>
+
+      {/* Main body: top bar + page content */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar
+          user={user}
+          guest={guest}
+          searchValue={searchValue}
+          onSearchChange={onSearchChange}
+          onOpenSidebar={() => setSidebarOpen(true)}
+        />
+
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-8">{children}</main>
       </div>
 
       {!guest ? <CompleteProfileModal user={user} /> : null}
@@ -53,15 +96,17 @@ export function AppShell({ user, guest = false, searchValue, onSearchChange, chi
 }
 
 function Sidebar({
-  collapsed,
-  onToggleCollapse,
   user,
   guest,
+  collapsed,
+  onToggleCollapse,
+  onNavigate,
 }: {
-  collapsed: boolean;
-  onToggleCollapse: () => void;
   user: SessionUser | null;
   guest: boolean;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  onNavigate?: () => void;
 }) {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -89,21 +134,22 @@ function Sidebar({
     }
   };
 
+  function initials(first?: string, last?: string) {
+    return (
+      (first?.slice(0, 1) || "") + (last?.slice(0, 1) || "")
+    ).toUpperCase() || "??";
+  }
+
   return (
     <aside
-      className={`sticky top-0 flex h-screen shrink-0 flex-col border-r border-border bg-card/40 transition-[width] duration-200 ${
-        collapsed ? "w-[76px]" : "w-[76px] md:w-64"
+      className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-card/40 transition-[width] duration-200 md:flex ${
+        collapsed ? "w-[76px]" : "w-64"
       }`}
     >
       {/* Header: logo · profile · collapse toggle */}
-      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-4">
-        <Link to="/" className="font-display text-lg font-extrabold tracking-tighter">
-          <span className={collapsed ? "hidden" : "hidden md:inline"}>
-            CheckAPay<span className="text-primary">.</span>
-          </span>
-          <span className={collapsed ? "inline" : "inline md:hidden"}>
-            C<span className="text-primary">.</span>
-          </span>
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3.5">
+        <Link to="/" className="flex items-center" onClick={onNavigate}>
+          <Logo size="sm" collapsed={collapsed} />
         </Link>
         <button
           type="button"
@@ -207,11 +253,17 @@ function Sidebar({
 }
 
 function TopBar({
+  user,
+  guest = false,
   searchValue,
   onSearchChange,
+  onOpenSidebar,
 }: {
+  user?: SessionUser | null;
+  guest?: boolean;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onOpenSidebar?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -228,7 +280,17 @@ function TopBar({
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/80 px-4 py-4 backdrop-blur-md sm:px-6">
-      <div className="mx-auto flex w-full max-w-6xl items-center gap-2 sm:gap-3">
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-2 sm:gap-3">
+        {/* Mobile sidebar toggle button */}
+        <button
+          type="button"
+          onClick={onOpenSidebar}
+          aria-label="Open sidebar"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground md:hidden"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e0e26"/>
+      <stop offset="100%" stop-color="#050510"/>
+    </linearGradient>
+
+    <!-- Main Shield Glow -->
+    <linearGradient id="primary-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="35%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <!-- Checkmark & Pay Arc Gradient -->
+    <linearGradient id="accent-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- Inner Glow Filter -->
+    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Container -->
+  <rect width="512" height="512" rx="128" fill="url(#bg-grad)"/>
+  <rect width="510" height="510" x="1" y="1" rx="127" fill="none" stroke="#1e1e5a" stroke-width="2"/>
+
+  <!-- Subtle Radial Ambient Glow -->
+  <circle cx="256" cy="256" r="160" fill="#6366f1" opacity="0.15" filter="url(#neon-glow)"/>
+
+  <!-- Outer Geometric Hex-Shield Outline -->
+  <path d="M 256 70 
+           L 410 155 
+           L 410 330 
+           L 256 425 
+           L 102 330 
+           L 102 155 Z" 
+        fill="none" 
+        stroke="url(#primary-grad)" 
+        stroke-width="18" 
+        stroke-linejoin="round"
+        stroke-linecap="round"
+        opacity="0.85"/>
+
+  <!-- Modern Dynamic Checkmark & Stablecoin Payment Symbol -->
+  <!-- Checkmark Left Stem -->
+  <path d="M 160 256 
+           L 225 322 
+           L 360 180" 
+        fill="none" 
+        stroke="url(#accent-grad)" 
+        stroke-width="36" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        filter="url(#neon-glow)"/>
+
+  <!-- Payment Currency Ring Accent (Top Right Orbit) -->
+  <circle cx="360" cy="180" r="18" fill="#38bdf8" filter="url(#neon-glow)"/>
+  
+  <!-- Subtle Center Core Energy Point -->
+  <circle cx="256" cy="256" r="6" fill="#ffffff" opacity="0.9"/>
+</svg>

@@ -21,6 +21,14 @@ CheckAPay/
 │   │   │   ├── collect-info.tsx← KYB onboarding (/collect-info)      ✅ Done
 │   │   │   ├── forgot-password.tsx ← Password recovery               ✅ Done
 │   │   │   ├── dashboard.tsx   ← Dashboard (/dashboard)              ✅ Done
+│   │   │   │   │   ├── Deposit QR Code Generator (authenticated only — guests redirect to /login)
+│   │   │   │   │   │   ├── Networks supported (select per card):
+│   │   │   │   │   │   │   ├── Base (Chain ID: 8453)       → USDC, EURC, CADC, ETH
+│   │   │   │   │   │   │   ├── Polygon (Chain ID: 137)     → USDC, MATIC, USDT
+│   │   │   │   │   │   │   ├── Arbitrum One (Chain ID: 42161) → USDC, ETH, USDT
+│   │   │   │   │   │   │   ├── Ethereum Mainnet (Chain ID: 1) → USDC, ETH, USDT
+│   │   │   │   │   │   │   └── Optimism (Chain ID: 10)     → USDC, ETH
+│   │   │   │   │   │   └── Crypto assets (Base-exclusive): CADC (Canadian Dollar Coin), EURC (Euro Coin)
 │   │   │   ├── create-invoice.tsx ← Invoice creation                 🚧 WIP
 │   │   │   ├── transactions.tsx ← Transaction history                🚧 WIP
 │   │   │   └── settings.tsx    ← Account settings                    🚧 WIP
