@@ -4,7 +4,7 @@
 
 ---
 
-> ⚠️ **STRICT SCHEMA RULE**: DO NOT add any new database tables or schemas without explicit permission from the user!
+> ⚠️ **STRICT SCHEMA RULE FOR AI MODELS**: DO NOT add any new database tables or schemas without explicit permission from the user!
 
 ---
 
